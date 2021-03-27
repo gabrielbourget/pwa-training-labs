@@ -33,7 +33,7 @@ limitations under the License.
     <script>
       if (navigator.serviceWorker) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("service-worker.js")
+          navigator.serviceWorker.register("/service-worker.js", { scope: "/below" })
             .then((regObj) => {
               console.log("[index.html]: Service worker is registered -> ", regObj);
             })
