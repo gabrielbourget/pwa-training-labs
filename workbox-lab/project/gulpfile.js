@@ -16,6 +16,7 @@
 const gulp = require('gulp');
 const browserSync = require('browser-sync');
 const del = require('del');
+const workboxBuild = require("workbox-build");
 
 // Clean "build" directory
 const clean = () => {
@@ -29,10 +30,30 @@ const copy = () => {
 };
 gulp.task('copy', copy);
 
-// TODO - create a task to build the service worker
+// -> Build a service worker
+const buildSw = () => {
+  return workboxBuild.injectManifest({
+    swSrc: "src/sw.js",
+    swDest: "build/sw.js",
+    globDirectory: "build",
+    globPatterns: [
+      "**\/*.css",
+      "index.html",
+      "js\/animation.js",
+      "images\/home\/*.jpg",
+      "images\/icon\/*.svg",
+      "pages/offline.html",
+      "pages/404.html"
+    ]
+  }).then((resources) => {
+    console.log(`[gulpfile]: Injected ${resources.count} resources for pre-caching`
+                  + `totaling ${resources.size} bytes.`);
+  }).catch((err) => console.error("[gulpfile]: There was a problem building the service worker -> ", err));
+}
+gulp.task("build-sw", buildSw);
 
 // This is the app's build process
-const build = gulp.series('clean', 'copy');
+const build = gulp.series('clean', 'copy', "build-sw");
 gulp.task('build', build);
 
 // Build the app, run a local dev server, and rebuild on "src" file changes
