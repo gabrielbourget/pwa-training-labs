@@ -1,6 +1,6 @@
 /* main.css */
 
-.container {
+/* .container {
   background: #eee;
   overflow: auto;
 }
@@ -9,12 +9,37 @@
     width: 27%;
     padding: 30px 3.15% 0;
     float: left;
-}
+} */
 
 /* TODO 3 - style the page */
 
 /* TODO 4 - use media query */
+/* @media screen and (max-width: 48rem) {
+  .container .col {
+    width: 95%;
+  }
+} */
 
 /* TODO 5.2 - use flexbox */
+.container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  background: #eee;
+  overflow: auto;
+}
+
+.container .col {
+  flex: 1;
+  padding: 1rem;
+}
 
 /* TODO 5.4 - use media query with Flexbox*/
+@media screen and (max-width: 48rem) {
+  .container {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    flex-flow: column;
+  }
+}
