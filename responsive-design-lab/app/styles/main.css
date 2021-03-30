@@ -11,16 +11,12 @@
     float: left;
 } */
 
-/* TODO 3 - style the page */
-
-/* TODO 4 - use media query */
 /* @media screen and (max-width: 48rem) {
   .container .col {
     width: 95%;
   }
 } */
 
-/* TODO 5.2 - use flexbox */
 .container {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -34,7 +30,6 @@
   padding: 1rem;
 }
 
-/* TODO 5.4 - use media query with Flexbox*/
 @media screen and (max-width: 48rem) {
   .container {
     display: -webkit-box;
