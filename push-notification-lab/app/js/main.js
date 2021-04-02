@@ -1,56 +1,111 @@
-/*
-Copyright 2018 Google Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 const app = (() => {
   'use strict';
 
   let isSubscribed = false;
   let swRegistration = null;
+  const PUBLIC_VAPID_KEY = "BIkTnffXEir_WbkKokaHGHJVuoEsmlx1rA8rCtBjD-_85PG4kU4dGtWjYE52ydNLchN6H9YL4lckQG5Kdsz2rJs";
+  const PRIVATE_VAPID_KEY = "Pp03KqFQUwVUAOq95xafIU4XndC195N7tZ8cJKPNvr0";
 
   const notifyButton = document.querySelector('.js-notify-btn');
   const pushButton = document.querySelector('.js-push-btn');
 
-  // TODO 2.1 - check for notification support
+  // - DEV NOTE -> To take this beyond the canonical use case, consider edge cases such as
+  //               some sort of fallback UX to compensate for a lack of support in some way.
+  if (!("Notification" in window)) {
+    console.log("[main.js]: This browser does not support notifications.");
+  }
 
-  // TODO 2.2 - request permission to show notifications
+  Notification.requestPermission((status) => {
+    console.log(`[main.js]: Notification permission status -> ${status}`);
+  });
 
   function displayNotification() {
+    if (Notification.permission === "granted") {
+      navigator.serviceWorker.getRegistration().then((swReg) => {
+        const options = {
+          body: "Hello world.",
+          icon: "images/notification-flat.png",
+          vibrate: [100, 50, 100],
+          // tag: "id1",
+          data: {
+            dateOfArrival: Date.now(),
+            primaryKey: 1,
+          },
+          actions: [
+            {
+              action: "explore",
+              title: "Go to the site",
+              icon: "images/checkmark.png",
+            },
+            {
+              action: "close",
+              title: "Close the notification",
+              icon: "images/xmark.png",
+            }
+          ],
+        };
 
-    // TODO 2.3 - display a Notification
-
+        swReg.showNotification("Hello world.", options);
+      });
+    }
   }
 
   function initializeUI() {
 
-    // TODO 3.3b - add a click event listener to the "Enable Push" button
-    // and get the subscription object
+    pushButton.addEventListener("click", () => {
+      pushButton.disabled = true;
+      if (isSubscribed) {
+        unsubscribeUser();
+      } else {
+        subscribeUser();
+      }
+    });
 
+    swRegistration.pushManager.getSubscription()
+      .then((subscription) => {
+        isSubscribed = (subscription !== null);
+        updateSubscriptionOnServer(subscription);
+        if (isSubscribed) {
+          console.log(`[main.js]: user is subscribed`);
+        } else {
+          console.log(`[main.js]: user is not subscribed`);
+        }
+        updateBtn();
+      });
   }
 
-  // TODO 4.2a - add VAPID public key
+  const applicationServerPublicKey = PUBLIC_VAPID_KEY;
 
   function subscribeUser() {
-
-    // TODO 3.4 - subscribe to the push service
-
+    console.log(`[main.js]: subscribeUser() invoked. swReg object -> ${swRegistration}`);
+    const applicationServerKey = urlB64ToUint8Array(applicationServerPublicKey);
+    swRegistration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey })
+      .then((subscription) => {
+        console.log(`[main.js]: user is subscribed -> ${subscription}`);
+        updateSubscriptionOnServer(subscription);
+        isSubscribed = true;
+        updateBtn();
+      }).catch((err) => {
+        if (Notification.permission === "denied") {
+          console.warn(`[main.js]: Permission for notifications was denied`);
+        } else {
+          console.error(`Failed to subscribe the user -> ${err}`);
+        }
+        updateBtn();
+      });
   }
 
   function unsubscribeUser() {
-
-    // TODO 3.5 - unsubscribe from the push service
-
+    swRegistration.pushManager.getSubscription()
+      .then((subscription) => {
+        if(subscription) return subscription.unsubscribe();
+      }).catch((err) => console.error(`[main.js]: error unsubscribing from push service`))
+      .then(() => {
+        updateSubscriptionOnServer(null);
+        console.log(`[main.js]: user is unsubscribed from push service`);
+        isSubscribed = false;
+        updateBtn();
+      });
   }
 
   function updateSubscriptionOnServer(subscription) {
@@ -115,7 +170,7 @@ const app = (() => {
 
         swRegistration = swReg;
 
-        // TODO 3.3a - call the initializeUI() function
+        initializeUI();
       })
       .catch(err => {
         console.error('Service Worker Error', err);

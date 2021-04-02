@@ -1,21 +1,85 @@
-/*
-Copyright 2018 Google Inc.
+self.addEventListener("notificationclose", (evt) => {
+  const notification = evt.notification;
+  const primaryKey = notification.data.primaryKey;
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+  console.log(`[sw.js]: Closed notification: ${primaryKey}`);
+});
 
-    http://www.apache.org/licenses/LICENSE-2.0
+// self.addEventListener("notificationclick", (evt) => {
+//   const notification = evt.notification;
+//   const primaryKey = notification.data.primaryKey;
+//   clients.openWindow(`samples/page${primaryKey}.html`);
+//   notification.close();
+// });
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+self.addEventListener('notificationclick', event => {
+  const notification = event.notification;
+  const primaryKey = notification.data.primaryKey;
+  const action = event.action;
 
-// TODO 2.6 - Handle the notificationclose event
+  // - DEV NOTE -> Not all platform support action buttons, and not every platform
+  //               displays all actions. Handling actions in an 'else' block is a best
+  //               practice which helps to provide a default user experience that works
+  //               everywhere.
+  if (action === 'close') {
+    notification.close();
+  } else {
+    event.waitUntil(
+      clients.matchAll().then((clients) => {
+        const client = clients.find((c) => c.visibilityState === "visible");
 
-// TODO 2.7 - Handle the notificationclick event
+        if (client !== undefined) {
+          client.navigate(`samples/page${primaryKey}.html`);
+          client.focus();
+        } else {
+          clients.openWindow('samples/page' + primaryKey + '.html');
+          notification.close();
+        }
+      })
+    );
+  }
 
-// TODO 3.1 - add push event listener
+  self.registration.getNotifications().then((notifications) => {
+    notifications.forEach((notification) => notification.close());
+  });
+});
+
+self.addEventListener("push", (evt) => {
+  let body;
+
+  if (evt.data) body = evt.data.text();
+  else body = "Default body";
+
+  const options = {
+    body,
+    icon: "images/notification-flat.png",
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    },
+    actions: [
+      {
+        action: "explore",
+        title: "Go to the site",
+        icon: "images/checkmark.png",
+      },
+      {
+        action: "close",
+        title: "Close the notification",
+        icon: "images/xmark.png",
+      }
+    ]
+  };
+
+  evt.waitUntil(
+    clients.matchAll().then((client) => {
+      console.log(`[sw.js]: Client -> ${client}`);
+      if (client.length === 0) {
+        self.registration.showNotification("Push Notification", options);
+      } else {
+        console.log(`[sw.js]: Application is already open.`);
+      }
+    })
+  );
+})
