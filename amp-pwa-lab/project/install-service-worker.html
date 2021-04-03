@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Instlaling service worker</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script tyle="text/javascript">
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js")
+            .then((swReg) => {
+              console.log("service worker registered");
+            }).catch((err) => console.error("Problem registering service worker"));
+        })
+      }
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
