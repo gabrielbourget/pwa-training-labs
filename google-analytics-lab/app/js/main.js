@@ -1,18 +1,3 @@
-/*
-Copyright 2018 Google Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 (function() {
   'use strict';
 
@@ -50,7 +35,10 @@ limitations under the License.
   // Send custom analytics event
 
   const favorite = () => {
-    // TODO Send a custom event
+    gtag("event", "favorite", {
+      "event_category": "photos",
+      "event_label": "cats",
+    });
   };
   const favoriteButton = document.getElementById('favorite');
   favoriteButton.addEventListener('click', favorite);
@@ -66,7 +54,10 @@ limitations under the License.
           reg.pushManager.subscribe({userVisibleOnly: true})
           .then(subscription => {
             console.log('Subscribed to push,', subscription);
-            // TODO Send subscribe event
+            gtag("event", "subscribe", {
+              "event_category": "push",
+              "event_label": "cat updates"
+            });
           })
           .catch(error => {
             if (Notification.permission === 'denied') {
@@ -99,7 +90,10 @@ limitations under the License.
           sub.unsubscribe()
           .then(() => {
             console.log('Unsubscribed!');
-            // TODO Send unsubscribe event
+            gtag("event", "unsubscribe", {
+              "event_category": "push",
+              "event_label": "cat updates"
+            });
           });
         } else {
           console.log('Not currently subscribed');
